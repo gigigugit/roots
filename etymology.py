@@ -233,34 +233,6 @@ BUILTIN_ETYMOLOGIES: dict[str, list[dict]] = {
             ],
         }
     ],
-    "democracy": [
-        {
-            "text": (
-                "From French démocratie, from Medieval Latin democratia, "
-                "from Ancient Greek δημοκρατία (dēmokratía), "
-                "from δῆμος (dêmos, 'people') + κράτος (krátos, 'power, rule')."
-            ),
-            "roots": [
-                {"root": "demos", "language": "Ancient Greek", "meaning": "people, populace"},
-                {"root": "kratos", "language": "Ancient Greek", "meaning": "power, rule, strength"},
-                {"root": "democratia", "language": "Latin", "meaning": "democracy"},
-            ],
-        }
-    ],
-    "philosophy": [
-        {
-            "text": (
-                "From Middle English philosophie, from Old French philosophie, "
-                "from Latin philosophia, from Ancient Greek φιλοσοφία (philosophía), "
-                "from φίλος (phílos, 'loving') + σοφία (sophía, 'wisdom')."
-            ),
-            "roots": [
-                {"root": "philos", "language": "Ancient Greek", "meaning": "loving, fond of"},
-                {"root": "sophia", "language": "Ancient Greek", "meaning": "wisdom"},
-                {"root": "philosophia", "language": "Latin", "meaning": "love of wisdom"},
-            ],
-        }
-    ],
     "catastrophe": [
         {
             "text": (

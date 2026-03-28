@@ -258,6 +258,97 @@
       margin: 1.2rem 0;
     }
 
+    /* ── Welcome section ─────────────────────────────────────────── */
+    .welcome {
+      text-align: center;
+      margin-top: 2.5rem;
+    }
+    .welcome-greeting {
+      font-size: 1.35rem;
+      font-weight: 600;
+      color: #e2e8f0;
+      margin-bottom: 0.5rem;
+    }
+    .welcome-text {
+      color: #94a3b8;
+      font-size: 0.95rem;
+      max-width: 540px;
+      margin: 0 auto;
+      line-height: 1.7;
+    }
+
+    /* ── Example chips ───────────────────────────────────────────── */
+    .examples {
+      margin-top: 2rem;
+      text-align: center;
+    }
+    .examples-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #475569;
+      margin-bottom: 0.7rem;
+    }
+    .examples-list {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+    .example-chip {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 100px;
+      padding: 0.4rem 1rem;
+      color: #94a3b8;
+      font-size: 0.88rem;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s, border-color 0.2s;
+    }
+    .example-chip:hover {
+      background: rgba(99,102,241,0.15);
+      color: #c7d2fe;
+      border-color: rgba(99,102,241,0.3);
+    }
+
+    /* ── How-it-works section ────────────────────────────────────── */
+    .how-it-works {
+      margin-top: 2.5rem;
+    }
+    .how-it-works .section-title {
+      text-align: center;
+    }
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-top: 0.5rem;
+    }
+    .feature-card {
+      background: #1e2130;
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 14px;
+      padding: 1.5rem;
+      text-align: center;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.3);
+    }
+    .feature-icon {
+      font-size: 1.8rem;
+      margin-bottom: 0.6rem;
+    }
+    .feature-title {
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: #e2e8f0;
+      margin-bottom: 0.35rem;
+    }
+    .feature-desc {
+      font-size: 0.82rem;
+      color: #64748b;
+      line-height: 1.6;
+    }
+
     /* ── Footer ───────────────────────────────────────────────────── */
     footer {
       text-align: center;
@@ -285,6 +376,49 @@
       spellcheck="false"
     />
     <button class="btn" id="analyzeBtn">Analyze</button>
+  </div>
+
+  <!-- Welcome section (visible on initial load) -->
+  <div class="welcome" id="welcomeSection">
+    <div class="welcome-greeting">👋 Hi there! Welcome to Roots.</div>
+    <p class="welcome-text">
+      Type any English word above and hit <strong>Analyze</strong> to uncover its
+      etymological origins, trace its roots across languages, and discover related
+      words you never knew were connected.
+    </p>
+
+    <div class="examples">
+      <div class="examples-label">Try one of these</div>
+      <div class="examples-list">
+        <span class="example-chip" data-word="philosophy">philosophy</span>
+        <span class="example-chip" data-word="democracy">democracy</span>
+        <span class="example-chip" data-word="science">science</span>
+        <span class="example-chip" data-word="telephone">telephone</span>
+        <span class="example-chip" data-word="bicycle">bicycle</span>
+        <span class="example-chip" data-word="hospital">hospital</span>
+      </div>
+    </div>
+
+    <div class="how-it-works">
+      <div class="section-title">How It Works</div>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">📖</div>
+          <div class="feature-title">Etymology Lookup</div>
+          <div class="feature-desc">Fetches detailed etymology data from Wiktionary for any word you search.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🌳</div>
+          <div class="feature-title">Root Extraction</div>
+          <div class="feature-desc">Identifies the ancient roots — Latin, Greek, Proto-Indo-European, and more.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🌍</div>
+          <div class="feature-title">Cross-Language Links</div>
+          <div class="feature-desc">Finds cognates and related words across dozens of languages worldwide.</div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Loading state -->
@@ -375,6 +509,8 @@
     ['loadingState', 'errorState', 'resultsState'].forEach(id => {
       $(id).classList.toggle('visible', id === name);
     });
+    // Hide welcome section when any state is active
+    $('welcomeSection').style.display = name ? 'none' : '';
   }
 
   // ── Render functions ───────────────────────────────────────────────────────
@@ -496,6 +632,15 @@
   // Pre-fill with a sample word on load
   window.addEventListener('DOMContentLoaded', () => {
     $('wordInput').focus();
+
+    // Example chip click handlers
+    document.querySelectorAll('.example-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        const word = chip.getAttribute('data-word');
+        $('wordInput').value = word;
+        analyzeWord(word);
+      });
+    });
   });
 </script>
 

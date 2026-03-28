@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Roots – Word Etymology Explorer</title>
+  <style>
+    /* ── Reset & base ─────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: #0f1117;
+      color: #e2e8f0;
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    /* ── Header ───────────────────────────────────────────────────── */
+    header {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 40%, #0f3460 100%);
+      padding: 3rem 2rem 2rem;
+      text-align: center;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      position: relative;
+      overflow: hidden;
+    }
+    header::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse at 60% 0%, rgba(99,102,241,0.25) 0%, transparent 60%),
+                  radial-gradient(ellipse at 20% 100%, rgba(16,185,129,0.15) 0%, transparent 50%);
+      pointer-events: none;
+    }
+    header h1 {
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      background: linear-gradient(90deg, #a78bfa, #38bdf8, #34d399);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      position: relative;
+    }
+    header p {
+      margin-top: 0.75rem;
+      color: #94a3b8;
+      font-size: 1.05rem;
+      position: relative;
+    }
+
+    /* ── Main layout ──────────────────────────────────────────────── */
+    main {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 2.5rem 1.25rem 4rem;
+    }
+
+    /* ── Search form ──────────────────────────────────────────────── */
+    .search-card {
+      background: #1e2130;
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 16px;
+      padding: 2rem;
+      display: flex;
+      gap: 0.75rem;
+      align-items: stretch;
+      box-shadow: 0 4px 32px rgba(0,0,0,0.4);
+    }
+    .search-card input {
+      flex: 1;
+      background: #0f1117;
+      border: 1.5px solid rgba(255,255,255,0.1);
+      border-radius: 10px;
+      padding: 0.85rem 1.25rem;
+      color: #e2e8f0;
+      font-size: 1.1rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .search-card input::placeholder { color: #4b5563; }
+    .search-card input:focus { border-color: #818cf8; }
+    .btn {
+      background: linear-gradient(135deg, #6366f1, #4f46e5);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 0.85rem 1.6rem;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
+      white-space: nowrap;
+    }
+    .btn:hover { opacity: 0.9; transform: translateY(-1px); }
+    .btn:active { transform: translateY(0); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    /* ── State containers ─────────────────────────────────────────── */
+    .state { display: none; margin-top: 2rem; }
+    .state.visible { display: block; }
+
+    /* Loading */
+    .loading-wrap {
+      text-align: center;
+      padding: 3rem 0;
+      color: #64748b;
+    }
+    .spinner {
+      width: 44px; height: 44px;
+      border: 4px solid rgba(99,102,241,0.2);
+      border-top-color: #818cf8;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 1rem;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Error */
+    .error-box {
+      background: rgba(239,68,68,0.08);
+      border: 1px solid rgba(239,68,68,0.3);
+      border-radius: 12px;
+      padding: 1.25rem 1.5rem;
+      color: #fca5a5;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+    }
+    .error-box .icon { font-size: 1.4rem; flex-shrink: 0; }
+
+    /* ── Result cards ─────────────────────────────────────────────── */
+    .result-word {
+      font-size: clamp(1.5rem, 4vw, 2.2rem);
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+      color: #f1f5f9;
+    }
+    .result-word em {
+      font-style: normal;
+      background: linear-gradient(90deg, #a78bfa, #38bdf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .section-title {
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #64748b;
+      margin-bottom: 0.9rem;
+    }
+    .card {
+      background: #1e2130;
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 14px;
+      padding: 1.5rem;
+      margin-bottom: 1.25rem;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.3);
+    }
+
+    /* Etymology text */
+    .ety-block + .ety-block { margin-top: 1.1rem; padding-top: 1.1rem; border-top: 1px solid rgba(255,255,255,0.06); }
+    .ety-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #475569;
+      margin-bottom: 0.4rem;
+    }
+    .ety-text { color: #94a3b8; font-size: 0.95rem; line-height: 1.7; }
+
+    /* Root chips */
+    .roots-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+      margin-top: 0.25rem;
+    }
+    .root-chip {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 100px;
+      padding: 0.35rem 0.75rem 0.35rem 0.5rem;
+      font-size: 0.88rem;
+    }
+    .root-chip .root-word { font-weight: 600; color: #e2e8f0; }
+    .root-chip .root-meaning { color: #64748b; font-size: 0.8rem; }
+
+    /* ── Language badges ──────────────────────────────────────────── */
+    .lang-badge {
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 0.18rem 0.52rem;
+      border-radius: 100px;
+      white-space: nowrap;
+    }
+    .lang-Latin            { background: rgba(239,68,68,0.18);  color: #fca5a5; border: 1px solid rgba(239,68,68,0.3); }
+    .lang-Ancient-Greek    { background: rgba(59,130,246,0.18); color: #93c5fd; border: 1px solid rgba(59,130,246,0.3); }
+    .lang-Proto-Germanic   { background: rgba(16,185,129,0.18); color: #6ee7b7; border: 1px solid rgba(16,185,129,0.3); }
+    .lang-Proto-Indo-European { background: rgba(168,85,247,0.18); color: #d8b4fe; border: 1px solid rgba(168,85,247,0.3); }
+    .lang-Sanskrit         { background: rgba(245,158,11,0.18); color: #fcd34d; border: 1px solid rgba(245,158,11,0.3); }
+    .lang-Arabic           { background: rgba(6,182,212,0.18);  color: #67e8f9; border: 1px solid rgba(6,182,212,0.3); }
+    .lang-Old-French,
+    .lang-Middle-French    { background: rgba(249,115,22,0.18); color: #fdba74; border: 1px solid rgba(249,115,22,0.3); }
+    .lang-Old-English,
+    .lang-Middle-English   { background: rgba(34,197,94,0.18);  color: #86efac; border: 1px solid rgba(34,197,94,0.3); }
+    .lang-Old-Norse        { background: rgba(14,165,233,0.18); color: #7dd3fc; border: 1px solid rgba(14,165,233,0.3); }
+    .lang-Persian          { background: rgba(139,92,246,0.18); color: #c4b5fd; border: 1px solid rgba(139,92,246,0.3); }
+    .lang-Hebrew           { background: rgba(234,179,8,0.18);  color: #fde047; border: 1px solid rgba(234,179,8,0.3); }
+    .lang-German           { background: rgba(220,38,38,0.18);  color: #fca5a5; border: 1px solid rgba(220,38,38,0.3); }
+    .lang-French           { background: rgba(37,99,235,0.18);  color: #93c5fd; border: 1px solid rgba(37,99,235,0.3); }
+    .lang-Italian          { background: rgba(22,163,74,0.18);  color: #86efac; border: 1px solid rgba(22,163,74,0.3); }
+    .lang-Spanish          { background: rgba(234,88,12,0.18);  color: #fdba74; border: 1px solid rgba(234,88,12,0.3); }
+    .lang-default          { background: rgba(100,116,139,0.18); color: #94a3b8; border: 1px solid rgba(100,116,139,0.3); }
+
+    /* ── Cross-language connections ───────────────────────────────── */
+    .cross-root-block { margin-bottom: 1.4rem; }
+    .cross-root-block:last-child { margin-bottom: 0; }
+    .cross-root-header {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      margin-bottom: 0.7rem;
+    }
+    .cross-root-word {
+      font-weight: 700;
+      font-size: 1rem;
+      color: #e2e8f0;
+    }
+    .cross-root-meaning { color: #64748b; font-size: 0.85rem; font-style: italic; }
+
+    .cognate-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+      gap: 0.5rem;
+    }
+    .cognate-item {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 8px;
+      padding: 0.55rem 0.8rem;
+    }
+    .cognate-lang { font-size: 0.75rem; color: #64748b; margin-bottom: 0.15rem; }
+    .cognate-word { font-weight: 600; font-size: 0.92rem; color: #cbd5e1; }
+    .cognate-rel  { font-size: 0.7rem; color: #475569; margin-top: 0.1rem; }
+
+    .divider {
+      height: 1px;
+      background: rgba(255,255,255,0.06);
+      margin: 1.2rem 0;
+    }
+
+    /* ── Footer ───────────────────────────────────────────────────── */
+    footer {
+      text-align: center;
+      padding: 2rem;
+      color: #334155;
+      font-size: 0.85rem;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>🌿 Roots</h1>
+  <p>Explore word etymology and cross-language connections</p>
+</header>
+
+<main>
+  <div class="search-card">
+    <input
+      id="wordInput"
+      type="text"
+      placeholder="Enter a word (e.g. philosophy, democracy, science…)"
+      autocomplete="off"
+      autocorrect="off"
+      spellcheck="false"
+    />
+    <button class="btn" id="analyzeBtn">Analyze</button>
+  </div>
+
+  <!-- Loading state -->
+  <div class="state" id="loadingState">
+    <div class="loading-wrap">
+      <div class="spinner"></div>
+      <p>Searching Wiktionary…</p>
+    </div>
+  </div>
+
+  <!-- Error state -->
+  <div class="state" id="errorState">
+    <div class="error-box">
+      <span class="icon">⚠</span>
+      <div id="errorMsg"></div>
+    </div>
+  </div>
+
+  <!-- Results state -->
+  <div class="state" id="resultsState">
+    <div class="result-word">Etymology of "<em id="resultWord"></em>"</div>
+
+    <!-- Etymology section -->
+    <div class="section-title">Etymology</div>
+    <div class="card" id="etymologyCard">
+      <div id="etymologyContent"></div>
+    </div>
+
+    <!-- Identified roots -->
+    <div class="section-title" id="rootsSectionTitle">Identified Roots</div>
+    <div class="card" id="rootsCard">
+      <div class="roots-grid" id="rootsContent"></div>
+    </div>
+
+    <!-- Cross-language connections -->
+    <div class="section-title">Cross-Language Connections</div>
+    <div class="card" id="crossLangCard">
+      <div id="crossLangContent"></div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  Powered by the <a href="https://en.wiktionary.org" style="color:#475569">Wiktionary API</a>
+</footer>
+
+<script>
+  // ── Helpers ────────────────────────────────────────────────────────────────
+  const $ = id => document.getElementById(id);
+
+  function langClass(lang) {
+    const map = {
+      'Latin': 'lang-Latin',
+      'Ancient Greek': 'lang-Ancient-Greek',
+      'Proto-Germanic': 'lang-Proto-Germanic',
+      'Proto-Indo-European': 'lang-Proto-Indo-European',
+      'Sanskrit': 'lang-Sanskrit',
+      'Arabic': 'lang-Arabic',
+      'Old French': 'lang-Old-French',
+      'Middle French': 'lang-Middle-French',
+      'Old English': 'lang-Old-English',
+      'Middle English': 'lang-Middle-English',
+      'Old Norse': 'lang-Old-Norse',
+      'Persian': 'lang-Persian',
+      'Hebrew': 'lang-Hebrew',
+      'German': 'lang-German',
+      'French': 'lang-French',
+      'Italian': 'lang-Italian',
+      'Spanish': 'lang-Spanish',
+    };
+    return map[lang] || 'lang-default';
+  }
+
+  function badge(lang) {
+    return `<span class="lang-badge ${langClass(lang)}">${lang}</span>`;
+  }
+
+  function cleanWikitext(text) {
+    return text
+      .replace(/\{\{[^}]+\}\}/g, '')         // remove templates
+      .replace(/\[\[(?:[^\]|]+\|)?([^\]]+)\]\]/g, '$1') // wikilinks
+      .replace(/'{2,3}/g, '')                 // bold/italic markers
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  function setState(name) {
+    ['loadingState', 'errorState', 'resultsState'].forEach(id => {
+      $(id).classList.toggle('visible', id === name);
+    });
+  }
+
+  // ── Render functions ───────────────────────────────────────────────────────
+  function renderEtymology(texts) {
+    if (!texts || texts.length === 0) {
+      $('etymologyContent').innerHTML = '<span style="color:#475569">No etymology text available.</span>';
+      return;
+    }
+    $('etymologyContent').innerHTML = texts.map((text, i) => {
+      const label = texts.length > 1 ? `<div class="ety-label">Etymology ${i + 1}</div>` : '';
+      return `<div class="ety-block">
+        ${label}
+        <div class="ety-text">${cleanWikitext(text)}</div>
+      </div>`;
+    }).join('');
+  }
+
+  function renderRoots(roots) {
+    const titleEl = $('rootsSectionTitle');
+    titleEl.textContent = `Identified Roots (${roots.length} found)`;
+    if (!roots || roots.length === 0) {
+      $('rootsContent').innerHTML = '<span style="color:#475569">No structured roots extracted from this word.</span>';
+      return;
+    }
+    $('rootsContent').innerHTML = roots.map(r => `
+      <div class="root-chip">
+        ${badge(r.language)}
+        <span class="root-word">${r.root}</span>
+        ${r.meaning ? `<span class="root-meaning">"${r.meaning}"</span>` : ''}
+      </div>
+    `).join('');
+  }
+
+  function renderCrossLanguage(cross) {
+    if (!cross || cross.length === 0) {
+      $('crossLangContent').innerHTML = '<span style="color:#475569">No cross-language connections found.</span>';
+      return;
+    }
+
+    // Filter out entries with no cognates
+    const withCognates = cross.filter(c => c.cognates && c.cognates.length > 0);
+    if (withCognates.length === 0) {
+      $('crossLangContent').innerHTML = '<span style="color:#475569">No cognates found for the identified roots.</span>';
+      return;
+    }
+
+    $('crossLangContent').innerHTML = withCognates.map((item, idx) => {
+      const meaningStr = item.source_meaning
+        ? `<span class="cross-root-meaning">"${item.source_meaning}"</span>`
+        : '';
+      const cognatesHtml = item.cognates.slice(0, 12).map(c => `
+        <div class="cognate-item">
+          <div class="cognate-lang">${c.language}</div>
+          <div class="cognate-word">${c.word}</div>
+          <div class="cognate-rel">${c.relationship}</div>
+        </div>
+      `).join('');
+      const more = item.cognates.length > 12
+        ? `<div style="color:#475569;font-size:0.8rem;margin-top:0.4rem">…and ${item.cognates.length - 12} more</div>`
+        : '';
+      const divider = idx < withCognates.length - 1 ? '<div class="divider"></div>' : '';
+
+      return `
+        <div class="cross-root-block">
+          <div class="cross-root-header">
+            ${badge(item.source_lang)}
+            <span class="cross-root-word">*${item.source_root}</span>
+            ${meaningStr}
+          </div>
+          <div class="cognate-list">${cognatesHtml}</div>
+          ${more}
+        </div>
+        ${divider}
+      `;
+    }).join('');
+  }
+
+  // ── API call ───────────────────────────────────────────────────────────────
+  async function analyzeWord(word) {
+    setState('loadingState');
+
+    try {
+      const res = await fetch('/api/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ word }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        $('errorMsg').textContent = data.error || `HTTP ${res.status} error`;
+        setState('errorState');
+        return;
+      }
+
+      $('resultWord').textContent = data.word;
+      renderEtymology(data.etymology_texts);
+      renderRoots(data.roots);
+      renderCrossLanguage(data.cross_language);
+      setState('resultsState');
+
+    } catch (err) {
+      $('errorMsg').textContent = 'Network error — is the server running?';
+      setState('errorState');
+    }
+  }
+
+  // ── Event listeners ────────────────────────────────────────────────────────
+  $('analyzeBtn').addEventListener('click', () => {
+    const word = $('wordInput').value.trim();
+    if (!word) { $('wordInput').focus(); return; }
+    analyzeWord(word);
+  });
+
+  $('wordInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') $('analyzeBtn').click();
+  });
+
+  // Pre-fill with a sample word on load
+  window.addEventListener('DOMContentLoaded', () => {
+    $('wordInput').focus();
+  });
+</script>
+
+</body>
+</html>

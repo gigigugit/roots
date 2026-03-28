@@ -13,7 +13,7 @@ import sys
 from etymology import get_word_info
 from cross_language import find_cross_language_roots
 
-# ANSI colour codes
+# ANSI color codes
 RESET = "\033[0m"
 BOLD = "\033[1m"
 DIM = "\033[2m"
@@ -25,8 +25,8 @@ MAGENTA = "\033[95m"
 CYAN = "\033[96m"
 WHITE = "\033[97m"
 
-# Language → terminal colour
-LANG_COLOURS: dict[str, str] = {
+# Language → terminal color
+LANG_COLORS: dict[str, str] = {
     "Latin": RED,
     "Ancient Greek": BLUE,
     "Proto-Germanic": GREEN,
@@ -47,9 +47,9 @@ LANG_COLOURS: dict[str, str] = {
 }
 
 
-def _lang_colour(lang: str) -> str:
-    """Return the ANSI colour for a given language, defaulting to white."""
-    return LANG_COLOURS.get(lang, WHITE)
+def _lang_color(lang: str) -> str:
+    """Return the ANSI color for a given language, defaulting to white."""
+    return LANG_COLORS.get(lang, WHITE)
 
 
 def _print_header(title: str) -> None:
@@ -67,8 +67,8 @@ def _print_root(root: dict) -> None:
     lang = root.get("language", "Unknown")
     word = root.get("root", "")
     meaning = root.get("meaning", "")
-    colour = _lang_colour(lang)
-    badge = f"{colour}[{lang}]{RESET}"
+    color = _lang_color(lang)
+    badge = f"{color}[{lang}]{RESET}"
     meaning_str = f'  {DIM}"{meaning}"{RESET}' if meaning else ""
     print(f"  {badge}  {BOLD}{word}{RESET}{meaning_str}")
 
@@ -85,18 +85,18 @@ def _print_cross_language(cross: list[dict]) -> None:
         src_meaning = item.get("source_meaning", "")
         cognates = item.get("cognates", [])
 
-        colour = _lang_colour(src_lang)
+        color = _lang_color(src_lang)
         meaning_str = f'  "{src_meaning}"' if src_meaning else ""
-        print(f"\n  {BOLD}{colour}*{src_root}{RESET} ({src_lang}){DIM}{meaning_str}{RESET}")
+        print(f"\n  {BOLD}{color}*{src_root}{RESET} ({src_lang}){DIM}{meaning_str}{RESET}")
 
         if cognates:
             for cog in cognates[:8]:  # limit display to 8 per root
                 cog_lang = cog.get("language", "")
                 cog_word = cog.get("word", "")
                 rel = cog.get("relationship", "")
-                c_colour = _lang_colour(cog_lang)
+                c_color = _lang_color(cog_lang)
                 print(
-                    f"    {c_colour}• {cog_lang}{RESET}: "
+                    f"    {c_color}• {cog_lang}{RESET}: "
                     f"{BOLD}{cog_word}{RESET}  {DIM}({rel}){RESET}"
                 )
             if len(cognates) > 8:
